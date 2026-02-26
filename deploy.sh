@@ -14,8 +14,9 @@ NC='\033[0m' # No Color
 
 # 项目路径配置
 DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
-BACKEND_DIR="$DEPLOY_DIR/eyangpet-backend"
-FRONTEND_DIR="$DEPLOY_DIR/eyangpet-frontend"
+PROJECT_ROOT="$(dirname "$DEPLOY_DIR")"
+BACKEND_DIR="$PROJECT_ROOT/eyangpet-backend"
+FRONTEND_DIR="$PROJECT_ROOT/eyangpet-frontend"
 
 # 检查 .env 文件
 check_env() {
