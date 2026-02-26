@@ -350,6 +350,11 @@ db_backup() {
 clone() {
     echo -e "${GREEN}克隆仓库...${NC}"
 
+    # 读取 .env 文件
+    if [ -f "$DEPLOY_DIR/.env" ]; then
+        source "$DEPLOY_DIR/.env"
+    fi
+
     if [ -z "$GIT_BACKEND_URL" ] || [ -z "$GIT_FRONTEND_URL" ]; then
         echo -e "${YELLOW}请在 .env 中设置 GIT_BACKEND_URL 和 GIT_FRONTEND_URL${NC}"
         echo ""
