@@ -35,8 +35,8 @@ sudo systemctl enable docker && sudo systemctl start docker
 ### 2. 克隆部署仓库
 
 ```bash
-mkdir -p /opt/eyangpet
-cd /opt/eyangpet
+mkdir -p /home/ubuntu/eyangpet
+cd /home/ubuntu/eyangpet
 git clone https://github.com/你的用户名/eyangpet-deployment.git .
 ```
 
@@ -114,7 +114,7 @@ docker compose restart nginx
 部署后的目录结构：
 
 ```
-/opt/eyangpet/
+/home/ubuntu/eyangpet/
 ├── deploy.sh
 ├── docker-compose.yml
 ├── .env                     # 环境变量（不上传到 Git）

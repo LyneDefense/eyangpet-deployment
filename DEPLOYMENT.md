@@ -79,13 +79,13 @@ cd eyangpet
 **方式二：SCP 上传**
 ```bash
 # 本地执行
-scp -r ./eyangpet-project root@your-server-ip:/opt/eyangpet
+scp -r ./eyangpet-project root@your-server-ip:/home/ubuntu/eyangpet
 ```
 
 ### 3. 配置环境变量
 
 ```bash
-cd /opt/eyangpet
+cd /home/ubuntu/eyangpet
 
 # 复制环境变量模板
 cp .env.example .env
@@ -198,7 +198,7 @@ docker exec -it eyangpet-db psql -U postgres -d eyangpet
 crontab -e
 
 # 添加以下行（每月1号凌晨3点续期证书）
-0 3 1 * * cd /opt/eyangpet && ./deploy.sh ssl-renew >> /var/log/certbot-renew.log 2>&1
+0 3 1 * * cd /home/ubuntu/eyangpet && ./deploy.sh ssl-renew >> /var/log/certbot-renew.log 2>&1
 ```
 
 ---
@@ -208,7 +208,7 @@ crontab -e
 当代码更新后：
 
 ```bash
-cd /opt/eyangpet
+cd /home/ubuntu/eyangpet
 
 # 拉取最新代码
 git pull
