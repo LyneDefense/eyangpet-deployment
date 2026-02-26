@@ -1,5 +1,4 @@
 # HTTPS 配置（生产环境）
-# 使用方法：mv default.conf default.conf.http && mv default.conf.ssl default.conf
 
 # HTTP -> HTTPS 重定向
 server {
@@ -47,16 +46,18 @@ server {
     gzip_min_length 256;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
 
-    # 前端静态文件
-    root /usr/share/nginx/html;
-    index index.html;
+    # 根路径返回 404
+    location = / {
+        return 404;
+    }
 
-    location / {
-        try_files $uri $uri/ /index.html;
+    # /eyangpet 重定向到 /eyangpet/
+    location = /eyangpet {
+        return 301 /eyangpet/;
     }
 
     # API 代理
-    location /api/ {
+    location /eyangpet/api/ {
         proxy_pass http://backend:9909/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -73,8 +74,16 @@ server {
     }
 
     # 静态资源缓存
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+    location ~* ^/eyangpet/(.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
+        alias /usr/share/nginx/html/$1;
         expires 30d;
         add_header Cache-Control "public, immutable";
+    }
+
+    # 前端静态文件 (SPA)
+    location /eyangpet/ {
+        alias /usr/share/nginx/html/;
+        index index.html;
+        try_files $uri $uri/ /eyangpet/index.html;
     }
 }
