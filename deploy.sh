@@ -313,7 +313,7 @@ ssl_init() {
     docker compose up -d nginx
     sleep 5
 
-    docker compose run --rm --entrypoint "" certbot certonly \
+    docker compose run --rm --entrypoint "certbot" certbot certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
         --email "$EMAIL" \
