@@ -29,6 +29,39 @@ check_env() {
     source "$DEPLOY_DIR/.env"
 }
 
+# 生成 nginx 配置（从模板替换域名）
+generate_nginx_config() {
+    local use_ssl=${1:-false}
+
+    check_env
+
+    if [ -z "$DOMAIN" ]; then
+        echo -e "${RED}错误: 请在 .env 中设置 DOMAIN${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}生成 Nginx 配置...${NC}"
+    echo "域名: $DOMAIN"
+
+    if [ "$use_ssl" = "true" ]; then
+        if [ -f "$DEPLOY_DIR/nginx/conf.d/default.conf.ssl.template" ]; then
+            sed "s/your-domain.com/$DOMAIN/g" "$DEPLOY_DIR/nginx/conf.d/default.conf.ssl.template" > "$DEPLOY_DIR/nginx/conf.d/default.conf"
+            echo -e "${GREEN}已生成 HTTPS 配置${NC}"
+        else
+            echo -e "${RED}错误: SSL 模板文件不存在${NC}"
+            exit 1
+        fi
+    else
+        if [ -f "$DEPLOY_DIR/nginx/conf.d/default.conf.template" ]; then
+            sed "s/your-domain.com/$DOMAIN/g" "$DEPLOY_DIR/nginx/conf.d/default.conf.template" > "$DEPLOY_DIR/nginx/conf.d/default.conf"
+            echo -e "${GREEN}已生成 HTTP 配置${NC}"
+        else
+            echo -e "${RED}错误: HTTP 模板文件不存在${NC}"
+            exit 1
+        fi
+    fi
+}
+
 # 初始化
 init() {
     echo -e "${GREEN}初始化项目...${NC}"
@@ -55,6 +88,9 @@ init() {
         else
             echo -e "${YELLOW}请创建 .env 文件${NC}"
         fi
+    else
+        # 生成 nginx 配置（默认 HTTP，用于首次获取证书）
+        generate_nginx_config false
     fi
 
     # 检查仓库是否存在
@@ -312,6 +348,9 @@ ssl_init() {
         exit 1
     fi
 
+    # 先生成 HTTP 配置用于验证
+    generate_nginx_config false
+
     echo -e "${GREEN}申请 SSL 证书...${NC}"
     echo "域名: $DOMAIN"
     echo "邮箱: $EMAIL"
@@ -330,10 +369,13 @@ ssl_init() {
 
     echo -e "${GREEN}证书申请成功！${NC}"
     echo ""
-    echo "请执行以下步骤启用 HTTPS:"
-    echo "1. mv nginx/conf.d/default.conf nginx/conf.d/default.conf.http"
-    echo "2. mv nginx/conf.d/default.conf.ssl nginx/conf.d/default.conf"
-    echo "3. docker compose restart nginx"
+
+    # 自动切换到 HTTPS 配置
+    echo -e "${GREEN}切换到 HTTPS 配置...${NC}"
+    generate_nginx_config true
+    docker compose restart nginx
+
+    echo -e "${GREEN}HTTPS 已启用！${NC}"
 }
 
 # 续期证书
@@ -440,6 +482,14 @@ case "$1" in
     ssl-renew)
         ssl_renew
         ;;
+    nginx-http)
+        generate_nginx_config false
+        echo -e "${YELLOW}请重启 nginx: docker compose restart nginx${NC}"
+        ;;
+    nginx-https)
+        generate_nginx_config true
+        echo -e "${YELLOW}请重启 nginx: docker compose restart nginx${NC}"
+        ;;
     db-backup)
         db_backup
         ;;
@@ -469,8 +519,10 @@ case "$1" in
         echo "  logs [服务名]   查看日志"
         echo ""
         echo "SSL 证书:"
-        echo "  ssl-init        申请 SSL 证书"
+        echo "  ssl-init        申请 SSL 证书（自动切换 HTTPS）"
         echo "  ssl-renew       续期 SSL 证书"
+        echo "  nginx-http      生成 HTTP 配置"
+        echo "  nginx-https     生成 HTTPS 配置"
         echo ""
         echo "数据库:"
         echo "  db-backup       备份数据库"
