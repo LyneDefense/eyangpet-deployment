@@ -191,6 +191,13 @@ build_frontend() {
 
     echo -e "${GREEN}构建前端...${NC}"
     cd "$FRONTEND_DIR"
+
+    # 修复可能的权限问题
+    if [ -d "node_modules" ] && [ ! -w "node_modules" ]; then
+        echo -e "${YELLOW}修复 node_modules 权限...${NC}"
+        sudo chown -R "$USER:$USER" "$FRONTEND_DIR"
+    fi
+
     npm install
     npm run build
     cd "$DEPLOY_DIR"
